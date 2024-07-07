@@ -16,13 +16,15 @@ from aiogram.types.input_media_photo import InputMediaPhoto
 from aiogram.enums.chat_action import ChatAction
 from time import sleep
 
+ADMIN = 5944280734
+
 dp = Dispatcher()
 bot = Bot(token="5987687553:AAHSaBhvaYMzhNEVsRXgMLWbGMQt4UlQICM", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 async def start(message: types.Message):
+    await bot.send_message(chat_id=ADMIN, text=f"Bot ishga tushdi\n\nUser: {message.from_user.mention_html(message.from_user.full_name)}")
     await message.answer(f"Salom {message.from_user.full_name}\nMenga yutube video havolasini yuboring !")
 
-ADMIN = 5944280734
 
 async def echo(message: types.Message):
     havola = message.text
