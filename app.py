@@ -1,7 +1,8 @@
-from pytube import YouTube
+from pytube import YouTube, Playlist
 import re
 from io import BytesIO
 import io
+import json
 
 def check_youtube_link(url):
     pattern = r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.*"
@@ -56,30 +57,25 @@ def download_youtube_video(url):
             }
             print("Ma'lumotlar yuklanmoqda !...")
             return context
+    except Exception as e:
+        return f"Xatolik yuz berdi: {e}"
+    
+def download_playlist(playlist_url="https://youtube.com/playlist?list=PLO9iTHH4zWX-fpFJ9j4cnFU5iyT_hAjjW&si=1Jv7HUoeq0lU6rO-"):
+    try:
+        playlist = Playlist(playlist_url).video_urls
+        titles = []
+        data = [
 
-            # context = {
-            #     "video": BytesIO(video.download()),
-            #     "audio": BytesIO(audio.download()),
-            #     "photo": thumbnail,
-            #     "title": title,
-            #     "video_size": video_size,
-            #     "audio_size": audio_size,
-            #     "views": number_formatter(int(views))
-            # }
-
-            print("Video and Audio downloaded successfully !")
-            # import os
-            # try:
-            #     await os.remove(f"./audio/audio-{title}.mp3")
-            #     print("Audio muvaffaqiyatli o'chirildi !")
-            # except:
-            #     print("Audio o'chirilmadi !")
-            # try:
-            #     await os.remove(f"./video/video-{title}.mp4")
-            #     print("VVideo muvaffaqiyatli o'chirildi !")
-            # except:
-            #     print("Video o'chirilmadi !")
-        
-    #     return context
+        ]
+        for video in playlist:
+            titles.append(YouTube(video).title)
+        for video in playlist:
+            data.append({YouTube(video).title: video})
+        with open("video.json", "w+") as f:
+            json.dump(data, f)
+        return {
+            "titles": titles,
+            "count": len(titles)
+        }
     except Exception as e:
         return f"Xatolik yuz berdi: {e}"
