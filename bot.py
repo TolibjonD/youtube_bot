@@ -77,6 +77,14 @@ for title in range(0,len(titles),20):
 async def military_download(message: types.Message):
     # titles = download_playlist()['titles']
     await message.answer("Pastdan kerakli qismlarni tanlang: ", reply_markup=military_keybrd)
+    chunks = divide_chunks(titles, 20)
+    index=0
+    for chunk in chunks:
+        txt = "<b>Military Motivation\n(Qurolli Maxsus Kuchlarga oid Video va Musiqalar to'plami):</b>\n\n"
+        for title in chunk:
+            index+=1
+            txt +=f"{index}.➡️  {title} 🎵 \n"
+        await message.answer(txt)
 
 async def cancel(message: types.Message):
     await message.answer("Youtube Havola yuboring yoki pastdagi bo'limni tanlang", reply_markup=startKey)
