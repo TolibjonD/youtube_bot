@@ -39,10 +39,18 @@ dp = Dispatcher()
 bot = Bot(token="5987687553:AAHSaBhvaYMzhNEVsRXgMLWbGMQt4UlQICM", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
+async def startup_answer(bot: Bot):
+    await bot.send_message(chat_id=ADMIN, text="Bot ishga tushdi !")
+
 @dp.message(StateFilter(PlaylisyState.url))
 async def download_playlist_only_music_answer(message: types.Message, state: FSMContext):
-    valid= check_youtube_playlist_link(message.text)
     user = message.from_user
+    valid= check_youtube_playlist_link(message.text)
+    text = "Bot ishlatilmoqda: \n\n"
+    text += f"User: {user.mention_html(user.full_name)}\n"
+    text += f"UserID: {user.id}\n"
+    text += f"Xabar: {message.text}"
+    await bot.send_message(chat_id=ADMIN, text=text)
     if valid:
         await state.clear()
         playlist_url = message.text
@@ -76,6 +84,12 @@ async def download_playlist_only_music_answer(message: types.Message, state: FSM
 
 @dp.message(Command(commands=["playlist"]))
 async def download_playlist_only_music(message: types.Message, state: FSMContext):
+    user = message.from_user
+    text = "Bot /playlist buyrug'i ishlatilmoqda: \n\n"
+    text += f"User: {user.mention_html(user.full_name)}\n"
+    text += f"UserID: {user.id}\n"
+    text += f"Xabar: {message.text}"
+    await bot.send_message(chat_id=ADMIN, text=text)
     await state.set_state(PlaylisyState.url)
     await message.answer("Youtube playlist linkini yuboring...")
 
@@ -123,6 +137,12 @@ for title in range(0,len(titles),20):
 async def military_download(message: types.Message):
     # titles = download_playlist()['titles']
     await message.answer("Pastdan kerakli qismlarni tanlang: ", reply_markup=military_keybrd)
+    user = message.from_user
+    text = "Botdan Military Army yuklanmoqda: \n\n"
+    text += f"User: {user.mention_html(user.full_name)}\n"
+    text += f"UserID: {user.id}\n"
+    text += f"Xabar: {message.text}"
+    await bot.send_message(chat_id=ADMIN, text=text)
     chunks = divide_chunks(titles, 20)
     index=0
     for chunk in chunks:
@@ -189,6 +209,7 @@ async def echo(message: types.Message):
         await message.delete()
 
 async def main():
+    dp.startup.register(startup_answer)
     dp.message.register(military_download, MyFilter("Special Forces Group Music & Videos 💣"))
     dp.message.register(cancel, MyFilter("Ortga 🔙"))
     dp.message.register(start, CommandStart())
