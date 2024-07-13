@@ -10,6 +10,13 @@ def check_youtube_link(url):
         return True
     else:
         return False
+    
+def check_youtube_playlist_link(url):
+    pattern = r"^https:\/\/youtube\.com(\/playlist\?list=).*"
+    if re.match(pattern, url):
+        return True
+    else:
+        return False
 
 def number_formatter(num):
     if num < 1000:
@@ -60,22 +67,28 @@ def download_youtube_video(url):
     except Exception as e:
         return f"Xatolik yuz berdi: {e}"
     
-def download_playlist(playlist_url="https://youtube.com/playlist?list=PLO9iTHH4zWX-fpFJ9j4cnFU5iyT_hAjjW&si=1Jv7HUoeq0lU6rO-"):
+def download_playlist(playlist_url):
     try:
         playlist = Playlist(playlist_url).video_urls
-        titles = []
-        data = [
-
-        ]
-        for video in playlist:
-            titles.append(YouTube(video).title)
-        for video in playlist:
-            data.append({YouTube(video).title: video})
-        with open("video.json", "w+") as f:
-            json.dump(data, f)
-        return {
-            "titles": titles,
-            "count": len(titles)
-        }
+        return playlist
+    except Exception as e:
+        return f"Xatolik yuz berdi: {e}"
+    
+def download_playlist_musics(urls):
+    try:
+        audios=[]
+        for url in urls:
+            yt = YouTube(url)
+            if yt.age_restricted:
+                return "Bu videoni yuklab olish imkonsiz, chunki unda yosh chegarasi mavjud !..."
+            else:
+                audio = yt.streams.get_audio_only()
+                title = yt.title
+                buffer = io.BytesIO()
+                audio.stream_to_buffer(buffer)
+                buffer.seek(0)
+                data = buffer.read()
+                audios.append({title:data})
+        return audios
     except Exception as e:
         return f"Xatolik yuz berdi: {e}"

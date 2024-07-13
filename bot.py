@@ -4,7 +4,7 @@ import io
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import CommandStart
-from app import download_youtube_video, download_playlist
+from app import download_youtube_video, download_playlist, download_playlist_musics, check_youtube_playlist_link
 import logging
 from sys import stdout
 from aiogram.types.input_file import BufferedInputFile
@@ -19,6 +19,12 @@ from time import sleep
 from keyboards import startKey, military_keybrd, divide_chunks
 from keyboards import titles, divide_chunks
 import json
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+
+class PlaylisyState(StatesGroup):
+    url = State()
 
 ADMIN = 5944280734
 
@@ -32,6 +38,46 @@ class MyFilter(Filter):
 dp = Dispatcher()
 bot = Bot(token="5987687553:AAHSaBhvaYMzhNEVsRXgMLWbGMQt4UlQICM", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
+
+@dp.message(StateFilter(PlaylisyState.url))
+async def download_playlist_only_music_answer(message: types.Message, state: FSMContext):
+    valid= check_youtube_playlist_link(message.text)
+    user = message.from_user
+    if valid:
+        await state.clear()
+        playlist_url = message.text
+        await bot.send_chat_action(chat_id=user.id, action=ChatAction.UPLOAD_DOCUMENT, request_timeout=20)
+        await message.answer("Yaxshi, biroz kuting. Sizning musiqalaringiz yuklanmoqda 🎵")
+        sleep(10)
+        await message.delete()
+        urls = download_playlist(playlist_url)
+        if urls and type(urls) != str:
+            audios = download_playlist_musics(urls)
+            if audios and type(audios) != str:
+                for data in audios:
+                    for key,value in data.items():
+                        try:
+                            audio = io.BytesIO(value).read()
+                            aud = BufferedInputFile(file=audio, filename=f"{key}.mp3")
+                            await bot.send_chat_action(chat_id=user.id, action=ChatAction.UPLOAD_DOCUMENT)
+                            await message.answer_audio(audio=aud, reply_markup=startKey)
+                        except:
+                            await state.clear()
+                            await message.answer("Musiqani yuklashda Xatolik yuz berdi !" , reply_markup=startKey)
+            else:
+                await message.answer(audios)
+        else:
+            await message.answer(urls)
+    else:
+        await message.answer("Siz yuborgan havola youtube playlist havolasi emas .")
+        sleep(3)
+        await message.delete()
+        await state.clear()
+
+@dp.message(Command(commands=["playlist"]))
+async def download_playlist_only_music(message: types.Message, state: FSMContext):
+    await state.set_state(PlaylisyState.url)
+    await message.answer("Youtube playlist linkini yuboring...")
 
 index=0
 for title in range(0,len(titles),20):
@@ -125,7 +171,7 @@ async def echo(message: types.Message):
                     await message.answer_audio(audio=aud , reply_markup=startKey)
                     await message.delete()
                 except:
-                    await message.answer("Xatolik yuz berdi yoki siz yuborgan haola yaroqsiz !" , reply_markup=startKey)
+                    await message.answer("Xatolik yuz berdi yoki siz yuborgan havola yaroqsiz !" , reply_markup=startKey)
                     sleep(5)
                     await message.delete()
         else:
