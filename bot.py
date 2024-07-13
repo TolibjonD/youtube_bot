@@ -22,6 +22,8 @@ import json
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from test import translate
+
 
 class PlaylisyState(StatesGroup):
     url = State()
@@ -55,7 +57,9 @@ async def download_playlist_only_music_answer(message: types.Message, state: FSM
         await state.clear()
         playlist_url = message.text
         await bot.send_chat_action(chat_id=user.id, action=ChatAction.UPLOAD_DOCUMENT, request_timeout=20)
-        await message.answer("Yaxshi, biroz kuting. Sizning musiqalaringiz yuklanmoqda 🎵")
+        text = "Yaxshi, biroz kuting. Sizning musiqalaringiz yuklanmoqda 🎵"
+        translated = await translate(text=text, to_lang=user.language_code)
+        await message.answer(translated)
         sleep(10)
         await message.delete()
         urls = download_playlist(playlist_url)
@@ -71,13 +75,21 @@ async def download_playlist_only_music_answer(message: types.Message, state: FSM
                             await message.answer_audio(audio=aud, reply_markup=startKey)
                         except:
                             await state.clear()
-                            await message.answer("Musiqani yuklashda Xatolik yuz berdi !" , reply_markup=startKey)
+                            text = "Musiqani yuklashda Xatolik yuz berdi !"
+                            translated = await translate(text=text, to_lang=user.language_code)
+                            await message.answer(text=translated , reply_markup=startKey)
             else:
-                await message.answer(audios)
+                text = audios
+                translated = await translate(text=text, to_lang=user.language_code)
+                await message.answer(text=translated)
         else:
-            await message.answer(urls)
+            text = urls
+            translated = await translate(text=text, to_lang=user.language_code)
+            await message.answer(text=translated)
     else:
-        await message.answer("Siz yuborgan havola youtube playlist havolasi emas .")
+        text = "Siz yuborgan havola youtube playlist havolasi emas ."
+        translated = await translate(text=text, to_lang=user.language_code)
+        await message.answer(text=translated)
         sleep(3)
         await message.delete()
         await state.clear()
@@ -117,15 +129,19 @@ for title in range(0,len(titles),20):
                             title = data['title']
                             photo = data['photo']
                             caption = data['caption']
+                            text = caption
+                            translated_caption = await translate(text=text, to_lang=user.language_code)
                             video = io.BytesIO(data["video"]).read()
                             aud = BufferedInputFile(file=audio, filename=f"{title}.mp3")
                             vd = BufferedInputFile(file=video, filename=f"{title}.mp4")
-                            media = [InputMediaPhoto(media=photo, caption=caption), InputMediaVideo(media=vd)]
+                            media = [InputMediaPhoto(media=photo, caption=translated_caption), InputMediaVideo(media=vd)]
                             await bot.send_chat_action(chat_id=user.id, action=ChatAction.UPLOAD_DOCUMENT)
                             await bot(SendMediaGroup(chat_id=message.from_user.id, media=media))
                             await message.answer_audio(audio=aud , reply_markup=startKey)
                         except:
-                            await message.answer("Xatolik yuz berdi yoki siz yuborgan havola yaroqsiz !" , reply_markup=startKey)
+                            text = "Xatolik yuz berdi yoki siz yuborgan havola yaroqsiz !"
+                            translated = await translate(text=text, to_lang=user.language_code)
+                            await message.answer(text=translated , reply_markup=startKey)
                 else:
                     try:
                         await message.send_copy(chat_id=message.from_user.id, disable_notification=True, reply_markup=startKey)
@@ -136,8 +152,10 @@ for title in range(0,len(titles),20):
 
 async def military_download(message: types.Message):
     # titles = download_playlist()['titles']
-    await message.answer("Pastdan kerakli qismlarni tanlang: ", reply_markup=military_keybrd)
     user = message.from_user
+    text = "Pastdan kerakli qismlarni tanlang: "
+    translated =  await translate(text=text, to_lang=user.language_code)
+    await message.answer(text=translated , reply_markup=military_keybrd)
     text = "Botdan Military Army yuklanmoqda: \n\n"
     text += f"User: {user.mention_html(user.full_name)}\n"
     text += f"UserID: {user.id}\n"
@@ -150,15 +168,23 @@ async def military_download(message: types.Message):
         for title in chunk:
             index+=1
             txt +=f"{index}.➡️  {title} 🎵 \n"
-        await message.answer(txt)
+        text = txt
+        translated = await translate(text=text, to_lang=user.language_code)
+        await message.answer(text=translated)
 
 async def cancel(message: types.Message):
-    await message.answer("Youtube Havola yuboring yoki pastdagi bo'limni tanlang", reply_markup=startKey)
+    user = message.from_user
+    text = "Youtube Havola yuboring yoki pastdagi bo'limni tanlang"
+    translated = await translate(text=text, to_lang=user.language_code)
+    await message.answer(text=translated, reply_markup=startKey)
 
 
 async def start(message: types.Message):
     await bot.send_message(chat_id=ADMIN, text=f"Bot ishga tushdi\n\nUser: {message.from_user.mention_html(message.from_user.full_name)}")
-    await message.answer(f"Salom {message.from_user.full_name}\nMenga yutube video havolasini yuboring !", reply_markup=startKey)
+    user = message.from_user
+    text = f"Salom {message.from_user.full_name}\nMenga yutube video havolasini yuboring !"
+    translated = await translate(text=text, to_lang=user.language_code)
+    await message.answer(text=translated, reply_markup=startKey)
 
 
 async def echo(message: types.Message):
@@ -182,16 +208,19 @@ async def echo(message: types.Message):
                     title = data['title']
                     photo = data['photo']
                     caption = data['caption']
+                    translated_caption = await translate(text=caption, to_lang=user.language_code)
                     video = io.BytesIO(data["video"]).read()
                     aud = BufferedInputFile(file=audio, filename=f"{title}.mp3")
                     vd = BufferedInputFile(file=video, filename=f"{title}.mp4")
-                    media = [InputMediaPhoto(media=photo, caption=caption), InputMediaVideo(media=vd)]
+                    media = [InputMediaPhoto(media=photo, caption=translated_caption), InputMediaVideo(media=vd)]
                     await bot.send_chat_action(chat_id=user.id, action=ChatAction.UPLOAD_DOCUMENT)
                     await bot(SendMediaGroup(chat_id=message.from_user.id, media=media))
                     await message.answer_audio(audio=aud , reply_markup=startKey)
                     await message.delete()
                 except:
-                    await message.answer("Xatolik yuz berdi yoki siz yuborgan havola yaroqsiz !" , reply_markup=startKey)
+                    text = "Xatolik yuz berdi yoki siz yuborgan havola yaroqsiz !"
+                    translated = await translate(text=text, to_lang=user.language_code)
+                    await message.answer(text=translated, reply_markup=startKey)
                     sleep(5)
                     await message.delete()
         else:
@@ -204,7 +233,10 @@ async def echo(message: types.Message):
                 sleep(5)
                 await message.delete()
     else:
-        await message.answer("Iltimos, youtube video havolasini yuboring !", reply_markup=startKey)
+        text = "Iltimos, youtube video havolasini yuboring !"
+        translated = await translate(text=text, to_lang=user.language_code)
+        print(user.language_code)
+        await message.answer(text=translated, reply_markup=startKey)
         sleep(5)
         await message.delete()
 
